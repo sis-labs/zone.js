@@ -1,11 +1,19 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
 import {EventEmitter} from 'events';
 
 describe('nodejs EventEmitter', () => {
   let zone, zoneA, zoneB, emitter, expectZoneACount;
   beforeEach(() => {
     zone = Zone.current;
-    zoneA = zone.fork({ name: 'A' });
-    zoneB = zone.fork({ name: 'B' });
+    zoneA = zone.fork({name: 'A'});
+    zoneB = zone.fork({name: 'B'});
 
     emitter = new EventEmitter();
     expectZoneACount = 0;

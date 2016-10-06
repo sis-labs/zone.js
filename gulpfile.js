@@ -1,18 +1,21 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
 'use strict';
 
 var gulp = require('gulp');
 var rollup = require('gulp-rollup');
 var rename = require("gulp-rename");
-var gutil = require("gulp-util");
 var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
 var pump = require('pump');
 var uglify = require('gulp-uglify');
 var path = require('path');
 var spawn = require('child_process').spawn;
-
-
-var distFolder = './dist';
 
 function generateScript(inFile, outFile, minify, callback) {
   inFile = path.join('./build-esm/', inFile).replace(/\.ts$/, '.js');
@@ -172,10 +175,48 @@ gulp.task('test/node', ['compile'], function(cb) {
   });
   jrunner.print = function(value) {
     process.stdout.write(value);
-  }
+  };
   jrunner.addReporter(new JasmineRunner.ConsoleReporter(jrunner));
   jrunner.projectBaseDir = __dirname;
   jrunner.specDir = '';
   jrunner.addSpecFiles(specFiles);
   jrunner.execute();
+});
+
+// Check the coding standards and programming errors
+gulp.task('lint', () => {
+  const tslint = require('gulp-tslint');
+  // Built-in rules are at
+  // https://github.com/palantir/tslint#supported-rules
+  const tslintConfig = require('./tslint.json');
+
+  return gulp.src(['lib/**/*.ts', 'test/**/*.ts'])
+    .pipe(tslint({
+      tslint: require('tslint').default,
+      configuration: tslintConfig,
+      formatter: 'prose',
+    }))
+    .pipe(tslint.report({emitError: true}));
+});
+
+// clang-format entry points
+const srcsToFmt = [
+  'lib/**/*.ts',
+  'test/**/*.ts',
+];
+
+// Check source code for formatting errors (clang-format)
+gulp.task('format:enforce', () => {
+  const format = require('gulp-clang-format');
+  const clangFormat = require('clang-format');
+  return gulp.src(srcsToFmt).pipe(
+    format.checkFormat('file', clangFormat, {verbose: true, fail: true}));
+});
+
+// Format the source code with clang-format (see .clang-format)
+gulp.task('format', () => {
+  const format = require('gulp-clang-format');
+  const clangFormat = require('clang-format');
+  return gulp.src(srcsToFmt, { base: '.' }).pipe(
+    format.format('file', clangFormat)).pipe(gulp.dest('.'));
 });
